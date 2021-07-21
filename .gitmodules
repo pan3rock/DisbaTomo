@@ -1,0 +1,6 @@
+[submodule "external/fmt"]
+	path = external/fmt
+	url = https://gitclone.com/github.com/fmtlib/fmt.git
+[submodule "external/pybind11"]
+	path = external/pybind11
+	url = https://gitclone.com/github.com/pybind/pybind11.git
