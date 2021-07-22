@@ -177,7 +177,7 @@ def plot_model(config_inv, sid, plot_init, file_out):
     wmax = np.amax(weight)
     for i in range(vs.shape[0]):
         vs_plot = np.append(vs[i, :], vs[i, -1])
-        alpha = weight[i] / wmax * 0.2
+        alpha = weight[i] / wmax * 0.4
         plt.step(vs_plot, z_plot, 'k-', alpha=alpha)
 
     ml = []
