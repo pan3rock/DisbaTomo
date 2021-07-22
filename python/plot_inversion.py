@@ -172,12 +172,13 @@ def plot_model(config_inv, sid, plot_init, file_out):
     vs_ref = model_init[:, 3]
     hw = config_inv['half_width']
     vs = model_stat
-    vs_plot = np.linspace(vsmin, vsmax, 1000)
-    pdf = np.asarray([kde_scipy(x, vs_plot, weight) for x in vs.T])
+
     z_plot = np.append(z, zmax) * km2m
-    vs_plot = np.append(vs_plot, vsmax)
-    imax = np.argmax(pdf, axis=1)
-    plt.pcolormesh(vs_plot, z_plot, pdf, cmap='Greys', vmax=num_show * 0.2)
+    wmax = np.amax(weight)
+    for i in range(vs.shape[0]):
+        vs_plot = np.append(vs[i, :], vs[i, -1])
+        alpha = weight[i] / wmax * 0.2
+        plt.step(vs_plot, z_plot, 'k-', alpha=alpha)
 
     ml = []
     sl = []

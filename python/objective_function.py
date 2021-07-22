@@ -13,6 +13,7 @@ class ObjectiveFunctionDerivativeFree:
         self._init_memvar()
         self._init_model()
         self._init_data()
+        self.icov_m = self._get_model_convariance_inv()
 
     def _init_config(self, config, file_data):
         self.weights_mode = config.get("weights_mode", None)
@@ -21,6 +22,8 @@ class ObjectiveFunctionDerivativeFree:
         self.empirical_relation = config.get("empirical_relation", None)
         self.epsilon = config.get("epsilon", 1.0e-8)
         self.dir_output = config.get("dir_output", "inversion")
+
+        self.smooth = config['smooth']
 
         dir_data = config["dir_data"]
         self.file_data = os.path.join(dir_data, file_data)
@@ -95,6 +98,27 @@ class ObjectiveFunctionDerivativeFree:
             self.count_forward += 1
         return forward
 
+    def _get_smoothing_distance(self, z):
+        smooth = self.smooth
+        if z < smooth['zmin']:
+            sd = smooth['dmin']
+        elif z < smooth['zmax']:
+            sd = (smooth['dmax'] - smooth['dmin']) / \
+                (smooth['zmax'] - smooth['zmin']) * (z - smooth['zmin']) \
+                + smooth['dmin']
+        else:
+            sd = smooth['dmax']
+        return sd
+
+    def _get_model_convariance_inv(self):
+        z = self.z
+        cov_m = np.zeros([self.num_layer, self.num_layer])
+        for i in range(self.num_layer):
+            for j in range(self.num_layer):
+                sd = self._get_smoothing_distance((z[i] + z[j]) / 2.0)
+                cov_m[i, j] = np.exp(-abs(z[i] - z[j]) / sd)
+        return np.linalg.inv(cov_m)
+
     def _derivative_freg(self, x):
         model = self._update_model(x)
         vs = model[:, 3]
@@ -111,7 +135,7 @@ class ObjectiveFunctionDerivativeFree:
         ret = 0.5 * np.sum(lap ** 2) / (nl - 2)
         return ret
 
-    def _fitness_regularization(self, x):
+    def _fitness_regularization2(self, x):
         ret = 0.
         # norm damping ignored
         vs1 = self._update_model(x)[:, 3]
@@ -122,6 +146,15 @@ class ObjectiveFunctionDerivativeFree:
         self.f_dervreg = self._derivative_freg(x)
         ret += self.derivative_damping * self.f_dervreg
         return ret
+
+    def _fitness_regularization(self, x):
+        vs = self._update_model(x)[:, 3]
+        vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
+        vs = vs.reshape((-1, 1))
+        vs_ref = vs_ref.reshape((-1, 1))
+        ret = self.smooth['factor'] * \
+            (vs - vs_ref).T @ self.icov_m @ (vs - vs_ref) / len(x)
+        return ret[0, 0]
 
     def fitness(self, x):
         forward = self.fetch_forward(x)
@@ -139,6 +172,7 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         self._init_memvar()
         self._init_model()
         self._init_data()
+        self.icov_m = self._get_model_convariance_inv()
 
     def _init_model(self, model_init=None):
         if not model_init:
@@ -150,9 +184,6 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         vs0 = model_init[:, 3]
         self.vsmin = vs0 - self.half_width
         self.vsmax = vs0 + self.half_width
-        # bvs0 = (vs0/2.0 - self.vsmin) / (self.vsmax - self.vsmin)
-        # bvp = (model_init[:, 4] - self.vsmin) / (self.vsmax - self.vsmin)
-        # self.bounds = [(a, b) for a, b in zip(bvs0, bvp)]
         self.bounds = [(0, 1), ] * num_layer
         self.x0 = np.ones(num_layer) * 0.5
 
@@ -171,7 +202,7 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         ret = (matL @ vs).T @ matL / (nl - 2)
         return ret.ravel()
 
-    def _gradient_regularization(self, x):
+    def _gradient_regularization2(self, x):
         ret = 0.
         # norm damping ignored
         vs1 = self._update_model(x)[:, 3]
@@ -182,6 +213,14 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         self.g_dervreg = self._derivative_greg(x)
         ret += self.derivative_damping * self.g_dervreg
         return ret
+
+    def _gradient_regularization(self, x):
+        vs = self._update_model(x)[:, 3]
+        vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
+        vs = vs.reshape((-1, 1))
+        vs_ref = vs_ref.reshape((-1, 1))
+        ret = self.smooth['factor'] * self.icov_m @ (vs - vs_ref) / len(x)
+        return ret.flatten()
 
     def gradient(self, x):
         forward = self.fetch_forward(x)
