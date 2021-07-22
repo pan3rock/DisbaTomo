@@ -36,7 +36,6 @@ class ObjectiveFunctionDerivativeFree:
         # count
         self.count_fitness = 0
         self.count_forward = 0
-        self.count_iter = 0
 
         # timing
         self.time_start = time.time()
@@ -157,13 +156,13 @@ class ObjectiveFunctionDerivativeFree:
         vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
         vs = vs.reshape((-1, 1))
         vs_ref = vs_ref.reshape((-1, 1))
-        ret = self.smooth['factor'] * \
-            (vs - vs_ref).T @ self.icov_m @ (vs - vs_ref) / len(x)
+        ret = (vs - vs_ref).T @ self.icov_m @ (vs - vs_ref) / len(x)
         return ret[0, 0]
 
     def fitness(self, x):
         forward = self.fetch_forward(x)
-        ret = forward.fitness + self._fitness_regularization(x)
+        ret = forward.fitness + \
+            self.smooth['factor'] * self._fitness_regularization(x)
         self.fitness_current = ret
         if self.count_fitness == 0:
             self.fitness_init = ret
@@ -226,40 +225,15 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
         vs = vs.reshape((-1, 1))
         vs_ref = vs_ref.reshape((-1, 1))
-        ret = self.smooth['factor'] * self.icov_m @ (vs - vs_ref) / len(x)
+        ret = self.icov_m @ (vs - vs_ref) / len(x)
         return ret.flatten()
 
     def gradient(self, x):
         forward = self.fetch_forward(x)
         grad = forward.gradient
-        grad += self._gradient_regularization(x)
+        grad += self.smooth['factor'] * self._gradient_regularization(x)
         grad *= self.vsmax - self.vsmin
         return grad
-
-    def callback(self, x, dir_output=None, ind_count=0, x0=None):
-        if not dir_output:
-            dir_output = self.dir_output
-        if x0 is None:
-            x0 = self.x0
-        model = self._update_model(x)
-        file_model = os.path.join(dir_output,
-                                  'model{:d}.txt'.format(self.count_iter+1))
-        np.savetxt(file_model, model, fmt="%5d%12.6f%12.4f%12.4f%12.4f")
-        file_roots = os.path.join(dir_output,
-                                  'roots{:d}.npy'.format(self.count_iter+1))
-        roots = self.fetch_roots(x)
-        np.save(file_roots, roots.value)
-
-        # save the initial model and its corresponding dispersion curves
-        if self.count_iter == 0:
-            model = self._update_model(x0)
-            file_model = os.path.join(dir_output, 'model0.txt')
-            np.savetxt(file_model, model, fmt="%5d%12.6f%12.4f%12.4f%12.4f")
-            file_roots = os.path.join(dir_output, 'roots0.npy')
-            roots = self.fetch_roots(x0)
-            np.save(file_roots, roots.value)
-
-        self.count_iter += 1
 
 
 class Forward:
