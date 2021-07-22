@@ -7,10 +7,6 @@ import os
 from objective_function import (ObjectiveFunctionDerivativeUsed, Forward)
 
 import yaml
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
 
 params = {'axes.labelsize': 14,
           'axes.titlesize': 16,
@@ -113,7 +109,7 @@ def plot_disp(config, sid, all_disp, file_out):
 
     plt.legend(handles=[pinv, pdata],
                labels=['inversion', 'data'],
-               loc='upper right')
+               loc='lower left')
 
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Phase velocity (km/s)')
@@ -127,7 +123,7 @@ def plot_model(config_inv, sid, plot_init, file_out):
     config_plot = config_inv['plot']
     zmax = config_plot['zmax']
     vsmin, vsmax = config_plot['vs_lim']
-    file_model_ref = config_plot.get('model_ref', None)
+    file_model_data = config_plot.get('model_data', None)
     file_model_output = config_plot.get("model_output", "model_output.txt")
     dir_output = config_inv['dir_output']
     dir_output = os.path.join(dir_output, sid)
@@ -155,7 +151,7 @@ def plot_model(config_inv, sid, plot_init, file_out):
         model_stat = model_0[ind_sort, :]
         weight = np.ones_like(weight)
         weight /= np.sum(weight)
-        file_model_ref = None
+        file_model_data = None
 
     if zmax < 0.5:
         unit = 'm'
@@ -169,16 +165,25 @@ def plot_model(config_inv, sid, plot_init, file_out):
     file_model_init = config_inv['model_init']
     model_init = np.loadtxt(file_model_init)
     z = model_init[:, 1]
-    vs_ref = model_init[:, 3]
-    hw = config_inv['half_width']
+    hw = config_inv['init_half_width']
     vs = model_stat
 
     z_plot = np.append(z, zmax) * km2m
     wmax = np.amax(weight)
+
+    labels = []
+    handles = []
     for i in range(vs.shape[0]):
         vs_plot = np.append(vs[i, :], vs[i, -1])
-        alpha = weight[i] / wmax * 0.4
-        plt.step(vs_plot, z_plot, 'k-', alpha=alpha)
+        alpha = weight[i] / wmax * 0.2
+        p1, = plt.step(vs_plot, z_plot, 'k-',
+                       alpha=alpha, linewidth=2)
+
+    handles.append(p1)
+    if plot_init:
+        labels.append('initial model')
+    else:
+        labels.append('inverted model')
 
     ml = []
     sl = []
@@ -194,10 +199,12 @@ def plot_model(config_inv, sid, plot_init, file_out):
     ]
     zp = z_plot[:]
     if not plot_init:
-        plt.step(mp, zp, '-', label='inverted model', c='r', alpha=0.9)
+        p2, = plt.step(mp, zp, '-', c='r', alpha=0.8, linewidth=2)
+        handles.append(p2)
+        labels.append('estimated model')
 
     vs_init = model_init[:, 3]
-    hw = config_inv['half_width']
+    hw = config_inv['init_half_width']
     v1, v2 = vs_init - hw, vs_init + hw
     vs1_plot = np.append(v1, v1[-1])
     vs2_plot = np.append(v2, v2[-1])
@@ -205,8 +212,7 @@ def plot_model(config_inv, sid, plot_init, file_out):
              z_plot,
              '--',
              c='gray',
-             alpha=0.8,
-             label='initial model ranges')
+             alpha=0.8)
     plt.step(vs2_plot, z_plot, '--', c='gray', alpha=0.8)
 
     of = ObjectiveFunctionDerivativeUsed(config_inv, file_data)
@@ -221,23 +227,24 @@ def plot_model(config_inv, sid, plot_init, file_out):
     for i in range(model.shape[0]):
         print(("{:7.0f}" + "{:12.4f}" * 5).format(*model[i, :]))
 
-    if file_model_ref:
-        model_ref = np.loadtxt(file_model_ref)
-        z = model_ref[:, 1]
+    if file_model_data:
+        model_data = np.loadtxt(file_model_data)
+        z = model_data[:, 1]
         z = np.append(z, [
             zmax,
         ]) * km2m
-        vs = model_ref[:, 3]
+        vs = model_data[:, 3]
         vs = np.append(vs, [
             vs[-1],
         ])
-        plt.step(vs,
-                 z,
-                 '-',
-                 c='dodgerblue',
-                 alpha=0.6,
-                 label='reference model')
-        plt.legend()
+        p3, = plt.step(vs,
+                       z,
+                       '-',
+                       c='b',
+                       alpha=0.6,
+                       linewidth=2)
+        handles.append(p3)
+        labels.append('data model')
 
     if plot_init:
         file_model_init = config_inv['model_init']
@@ -250,8 +257,11 @@ def plot_model(config_inv, sid, plot_init, file_out):
         vs = np.append(vs, [
             vs[-1],
         ])
-        plt.step(vs, z, 'r-', alpha=0.7, label='initial model')
-        plt.legend()
+        p4, = plt.step(vs, z, 'r-', alpha=0.6)
+        handles.append(p4)
+        labels.append('reference model')
+
+    plt.legend(handles, labels, loc='lower left')
 
     if plot_init:
         plt.title('initial model distribution')
@@ -287,7 +297,7 @@ if __name__ == '__main__':
     file_out = args.out
 
     with open(file_config, 'r') as fp:
-        config = yaml.load(fp, Loader=Loader)
+        config = yaml.safe_load(fp)
 
     if show_model:
         plot_model(config, dataname, show_init, file_out)

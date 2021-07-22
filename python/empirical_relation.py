@@ -14,3 +14,21 @@ def brocher(z, vs):
     model[:, 1] = z
     model[:, 3] = vs
     return model
+
+
+def gardner(z, vs):
+    model = np.zeros([len(z), 5])
+
+    vp_vs_ratio = 1.7321
+    vp = vp_vs_ratio * vs
+    rho = 1.741 * vp ** 0.25
+    model[:, 0] = np.arange(len(z)) + 1.0
+    model[:, 1] = z
+    model[:, 2] = rho
+    model[:, 3] = vs
+    model[:, 4] = vp
+    return model
+
+
+def user_defined(z, vs):
+    pass

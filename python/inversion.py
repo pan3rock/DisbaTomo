@@ -13,10 +13,6 @@ from mpi_master_slave import WorkQueue
 from mpi4py import MPI
 
 import yaml
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
 
 
 class InversionMultiple(object):
@@ -36,7 +32,7 @@ class InversionMultiple(object):
             flog.write(fmt_head.format('No.data', 'No.m0', 'niter', 'nfev', 'success',
                                        'f(m0)', 'f(m)', 'time(s)'))
 
-        self.type_init = config.get('init_type', 'random')
+        self.init_method = config.get('init_method', 'random')
         self.model_init = config['model_init']
         self.options = config.get('option_bfgs', dict())
 
@@ -95,16 +91,16 @@ class InversionMultiple(object):
         if num_model == 1:
             list_para.append(np.ones(num_layer) * 0.5)
         else:
-            type_init = self.type_init
-            if type_init == 'random':
+            init_method = self.init_method
+            if init_method == 'random':
                 for i in range(num_model):
                     list_para.append(np.random.random(num_layer))
-            elif type_init == 'ascend':
+            elif init_method == 'ascend':
                 d = 1.0 / (num_model - 1)
                 for i in range(num_model):
                     list_para.append(i * d * np.ones(num_layer))
             else:
-                raise ValueError('invalid type_init in config')
+                raise ValueError('invalid init_method in config')
         return list_para
 
 
@@ -148,7 +144,7 @@ if __name__ == '__main__':
 
     if rank == 0:
         with open(file_config, 'r') as fp:
-            config = yaml.load(fp, Loader=Loader)
+            config = yaml.safe_load(fp)
         dir_output = config['dir_output']
         if os.path.exists(dir_output):
             shutil.rmtree(dir_output)

@@ -4,10 +4,6 @@ import argparse
 from disba import PhaseDispersion
 
 import yaml
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
 
 
 if __name__ == '__main__':
@@ -25,7 +21,7 @@ if __name__ == '__main__':
     love = args.love
 
     with open(file_config, 'r') as fp:
-        config = yaml.load(fp, Loader=Loader)
+        config = yaml.safe_load(fp)
 
     fmin = config['fmin']
     fmax = config['fmax']

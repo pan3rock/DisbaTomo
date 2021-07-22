@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8.0)
 project(DisbaTomo VERSION 0.1.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-Wall -g -fPIC -O3")
 set(CMAKE_Fortran_FLAGS "-Wall -g -fPIC -O3")
 

@@ -2,7 +2,7 @@ import numpy as np
 import os
 import time
 from collections import deque
-from empirical_relation import (brocher)
+from empirical_relation import (brocher, gardner, user_defined)
 from dpcxx import GradientEval
 from disba import PhaseDispersion
 
@@ -28,7 +28,8 @@ class ObjectiveFunctionDerivativeFree:
         dir_data = config["dir_data"]
         self.file_data = os.path.join(dir_data, file_data)
         self.file_model_init = config["model_init"]
-        self.half_width = config["half_width"]
+        self.half_width = config["init_half_width"]
+        self.inv_half_width = config["inv_half_width"]
         self.wave_type = config.get("wave_type", "rayleigh")
 
     def _init_memvar(self):
@@ -77,8 +78,12 @@ class ObjectiveFunctionDerivativeFree:
     def _update_model(self, x_in):
         x = x_in.flatten()
         vs = self.vsmin + (self.vsmax - self.vsmin) * x
-        if self.empirical_relation:
+        if self.empirical_relation == 'brocher':
             model = brocher(self.z, vs)
+        elif self.empirical_relation == 'gardner':
+            model = gardner(self.z, vs)
+        elif self.empirical_relation == 'user-defined':
+            model = user_defined(self.z, vs)
         else:
             model = self.model_init
             model[:, 3] = vs
@@ -184,7 +189,9 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         vs0 = model_init[:, 3]
         self.vsmin = vs0 - self.half_width
         self.vsmax = vs0 + self.half_width
-        self.bounds = [(0, 1), ] * num_layer
+        lb = (self.half_width - self.inv_half_width) / (2.0 * self.half_width)
+        ub = (self.half_width + self.inv_half_width) / (2.0 * self.half_width)
+        self.bounds = [(lb, ub), ] * num_layer
         self.x0 = np.ones(num_layer) * 0.5
 
     def _derivative_greg(self, x):
