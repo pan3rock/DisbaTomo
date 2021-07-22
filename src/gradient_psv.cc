@@ -774,9 +774,9 @@ ArrayXd IntegralLayer::compute_kvs() {
   double k2 = std::pow(k_, 2);
   ArrayXd kvs(nl_);
   for (int i = 0; i < nl_; ++i) {
-    kvs(i) = 0.5 * rho_(nl_ - 1) * beta_(nl_ - 1) *
-             (int_ur2_(nl_ - 1) + 1.0 / k2 * int_dus2_(nl_ - 1) -
-              2.0 / k_ * int_urdus_(nl_ - 1) - 4.0 / k_ * int_usdur_(nl_ - 1));
+    kvs(i) = 0.5 * rho_(i) * beta_(i) *
+             (int_ur2_(i) + 1.0 / k2 * int_dus2_(i) - 2.0 / k_ * int_urdus_(i) -
+              4.0 / k_ * int_usdur_(i));
   }
   return kvs;
 }

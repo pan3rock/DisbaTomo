@@ -116,7 +116,7 @@ class ObjectiveFunctionDerivativeFree:
         # norm damping ignored
         vs1 = self._update_model(x)[:, 3]
         vs0 = self._update_model(np.ones_like(x) * 0.5)[:, 3]
-        self.f_normreg = 0.5 * np.sum((vs1 - vs0)**2)
+        self.f_normreg = 0.5 * np.sum((vs1 - vs0)**2) / len(x)
         ret += self.norm_damping * self.f_normreg
         # derivative damping
         self.f_dervreg = self._derivative_freg(x)
@@ -171,11 +171,23 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         ret = (matL @ vs).T @ matL / (nl - 2)
         return ret.ravel()
 
+    def _gradient_regularization(self, x):
+        ret = 0.
+        # norm damping ignored
+        vs1 = self._update_model(x)[:, 3]
+        vs0 = self._update_model(np.ones_like(x) * 0.5)[:, 3]
+        self.g_normreg = (vs1 - vs0) / len(x)
+        ret += self.norm_damping * self.g_normreg
+        # derivative damping
+        self.g_dervreg = self._derivative_greg(x)
+        ret += self.derivative_damping * self.g_dervreg
+        return ret
+
     def gradient(self, x):
         forward = self.fetch_forward(x)
         grad = forward.gradient
+        grad += self._gradient_regularization(x)
         grad *= self.vsmax - self.vsmin
-        grad += self.derivative_damping * self._derivative_greg(x)
         return grad
 
     def callback(self, x, dir_output=None, ind_count=0, x0=None):

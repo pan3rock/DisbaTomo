@@ -337,8 +337,8 @@ double IntegralLayer::compute_I3() {
 ArrayXd IntegralLayer::compute_kvs() {
   ArrayXd kvs(nl_);
   for (int i = 0; i < nl_; ++i) {
-    kvs(i) = 0.5 * rho_(nl_ - 1) * beta_(nl_ - 1) *
-             (int_ut2_(nl_ - 1) + int_dut2_(nl_ - 1) / pow(k_, 2));
+    kvs(i) =
+        0.5 * rho_(i) * beta_(i) * (int_ut2_(i) + int_dut2_(i) / pow(k_, 2));
   }
   return kvs;
 }
