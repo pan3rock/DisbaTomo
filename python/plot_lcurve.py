@@ -32,9 +32,11 @@ if __name__ == '__main__':
 
     path = os.path.join(dir_lcurve, data_name + '.txt')
     curve = pd.read_fwf(path)
+    ind = np.argsort(curve['factor'])
 
     plt.figure(figsize=(10, 10))
-    plt.plot(np.log(curve['f_residual']), np.log(curve['f_reg']), 'k.-')
+    plt.plot(np.log(curve['f_residual'][ind]),
+             np.log(curve['f_reg'][ind]), 'k.-')
     for x, y, a in zip(curve['f_residual'], curve['f_reg'], curve['factor']):
         plt.annotate('{:9.6f}'.format(a), (np.log(x), np.log(y)))
     plt.xlabel('Residual norm $\log\|Ax - b\|_2$')
