@@ -43,7 +43,7 @@ system, e.g. apt-get, homebrew, pacman.
 ### Without sudo permission
 
 We use [spack](https://spack.io/) to install required softwares and libraries, which
-a package manager for supercomputers, Linux, and macOS. 
+is a package manager for supercomputers, Linux, and macOS. 
 
 1. Install spack
     ```bash
@@ -90,11 +90,15 @@ a package manager for supercomputers, Linux, and macOS.
     > module load ${MODULE_NAME}
     ```
     ${MODULE_NAME} can be found from "module avail", and we need to load
-    gcc, cmake, git and eigen3. For my computer, gcc is 
-    `gcc-9.3.0-gcc-4.8.5-swta24m`.
+    gcc, cmake, git and eigen3. when I installed, the command was below:
+    ```bash
+    > module load gcc-9.3.0-gcc-4.8.5-swta24m
+    > module load cmake-3.18.4-gcc-9.3.0-nesdphq
+    > module load git-2.29.0-gcc-9.3.0-y4b63yo
+    > module load eigen-3.3.8-gcc-9.3.0-txefvoy
+    ```
 
-    You can add these module load command to your .bashrc or add them
-    to the job script submitted to cluster.
+    You can add these module load command to your .bashrc.
 
 
 6. Install python package (the same procedure as above)
