@@ -32,6 +32,16 @@ class ObjectiveFunctionDerivativeFree:
         self.inv_half_width = config["inv_half_width"]
         self.wave_type = config.get("wave_type", "rayleigh")
 
+        self.reg_method = config.get("reg_method", "exp")
+        if self.reg_method == "exp":
+            self._fitness_regularization = self._freg_exp
+        elif self.reg_method == "tr0":
+            self._fitness_regularization = self._freg_tr0
+        elif self.reg_method == "tr1":
+            self._fitness_regularization = self._freg_tr1
+        elif self.reg_method == "tr2":
+            self._fitness_regularization = self._freg_tr2
+
     def _init_memvar(self):
         # count
         self.count_fitness = 0
@@ -123,35 +133,43 @@ class ObjectiveFunctionDerivativeFree:
                 cov_m[i, j] = np.exp(-abs(z[i] - z[j]) / sd)
         return np.linalg.inv(cov_m)
 
-    def _derivative_freg(self, x):
-        model = self._update_model(x)
-        vs = model[:, 3]
-        vs = vs.reshape((-1, 1))
+    def _freg_tr0(self, x):
+        vs = self._update_model(x)[:, 3]
+        vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
+        return np.sum((vs - vs_ref) ** 2) / len(x)
 
+    def _freg_tr1(self, x):
+        vs = self._update_model(x)[:, 3]
+        vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
+        vs = vs.reshape((-1, 1))
+        vs_ref = vs_ref.reshape((-1, 1))
         nl = len(vs)
-        matL = np.zeros((nl-2, nl))
+        matL = np.zeros((nl - 1, nl))
+        for i in range(nl - 1):
+            matL[i, i] = -0.5
+            matL[i, i+1] = 0.5
+
+        lap = matL@ (vs - vs_ref)
+        ret = 0.5 * np.sum(lap ** 2) / (nl - 1)
+        return ret
+
+    def _freg_tr2(self, x):
+        vs = self._update_model(x)[:, 3]
+        vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
+        vs = vs.reshape((-1, 1))
+        vs_ref = vs_ref.reshape((-1, 1))
+        nl = len(vs)
+        matL = np.zeros((nl - 2, nl))
         for i in range(nl - 2):
             matL[i, i] = -0.25
             matL[i, i+1] = 0.5
             matL[i, i+2] = -0.25
 
-        lap = matL@vs
+        lap = matL@ (vs - vs_ref)
         ret = 0.5 * np.sum(lap ** 2) / (nl - 2)
         return ret
 
-    def _fitness_regularization2(self, x):
-        ret = 0.
-        # norm damping ignored
-        vs1 = self._update_model(x)[:, 3]
-        vs0 = self._update_model(np.ones_like(x) * 0.5)[:, 3]
-        self.f_normreg = 0.5 * np.sum((vs1 - vs0)**2) / len(x)
-        ret += self.norm_damping * self.f_normreg
-        # derivative damping
-        self.f_dervreg = self._derivative_freg(x)
-        ret += self.derivative_damping * self.f_dervreg
-        return ret
-
-    def _fitness_regularization(self, x):
+    def _freg_exp(self, x):
         vs = self._update_model(x)[:, 3]
         vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
         vs = vs.reshape((-1, 1))
@@ -177,6 +195,14 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         self._init_model()
         self._init_data()
         self.icov_m = self._get_model_convariance_inv()
+        if self.reg_method == "exp":
+            self._gradient_regularization = self._greg_exp
+        elif self.reg_method == "tr0":
+            self._gradient_regularization = self._greg_tr0
+        elif self.reg_method == "tr1":
+            self._gradient_regularization = self._greg_tr1
+        elif self.reg_method == "tr2":
+            self._gradient_regularization = self._greg_tr2
 
     def _init_model(self, model_init=None):
         if not model_init:
@@ -193,34 +219,43 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
         self.bounds = [(lb, ub), ] * num_layer
         self.x0 = np.ones(num_layer) * 0.5
 
-    def _derivative_greg(self, x):
-        model = self._update_model(x)
-        vs = model[:, 3]
+    def _greg_tr0(self, x):
+        vs = self._update_model(x)[:, 3]
+        vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
+        return vs - vs_ref
+
+    def _greg_tr1(self, x):
+        vs = self._update_model(x)[:, 3]
+        vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
         vs = vs.reshape((-1, 1))
+        vs_ref = vs_ref.reshape((-1, 1))
 
         nl = len(vs)
-        matL = np.zeros((nl-2, nl))
-        for i in range(nl - 2):
-            matL[i, i] = -0.25
-            matL[i, i+1] = 0.5
-            matL[i, i+2] = -0.25
+        matL = np.zeros((nl - 1, nl))
+        for i in range(nl - 1):
+            matL[i, i] = -0.5
+            matL[i, i + 1] = 0.5
 
-        ret = (matL @ vs).T @ matL / (nl - 2)
+        ret = (matL @ (vs - vs_ref)).T @ matL / (nl - 1)
         return ret.ravel()
 
-    def _gradient_regularization2(self, x):
-        ret = 0.
-        # norm damping ignored
-        vs1 = self._update_model(x)[:, 3]
-        vs0 = self._update_model(np.ones_like(x) * 0.5)[:, 3]
-        self.g_normreg = (vs1 - vs0) / len(x)
-        ret += self.norm_damping * self.g_normreg
-        # derivative damping
-        self.g_dervreg = self._derivative_greg(x)
-        ret += self.derivative_damping * self.g_dervreg
-        return ret
+    def _greg_tr2(self, x):
+        vs = self._update_model(x)[:, 3]
+        vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
+        vs = vs.reshape((-1, 1))
+        vs_ref = vs_ref.reshape((-1, 1))
 
-    def _gradient_regularization(self, x):
+        nl = len(vs)
+        matL = np.zeros((nl - 2, nl))
+        for i in range(nl - 2):
+            matL[i, i] = -0.25
+            matL[i, i + 1] = 0.5
+            matL[i, i + 2] = -0.25
+
+        ret = (matL @ (vs - vs_ref)).T @ matL / (nl - 2)
+        return ret.ravel()
+
+    def _greg_exp(self, x):
         vs = self._update_model(x)[:, 3]
         vs_ref = self._update_model(np.ones_like(x) * 0.5)[:, 3]
         vs = vs.reshape((-1, 1))

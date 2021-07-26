@@ -28,6 +28,10 @@ weights_mode:
   3: 1.0
 
 # regularization
+# exp, tr1, tr0, tr2
+reg_method: tr0
+
+# regularization
 smooth:
   factor: 1.0e-2
   zmin: 0.0
