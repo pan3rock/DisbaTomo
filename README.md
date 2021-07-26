@@ -163,11 +163,33 @@ The sensitivity is defined in [[1]](#1).
 ```bash
 > ../../python/forward.py --data data/0.txt
 > ../../python/plot_disp.py disp.txt
-> ../../python/plot_kernel.py model_output.txt --disp disp.txt --mode 0 --plot_dispersion
-> ../../python/plot_kernel.py model_output.txt --disp disp.txt --mode 1 --plot_dispersion
-> ../../python/plot_kernel.py model_output.txt --disp disp.txt --mode 2 --plot_dispersion
-> ../../python/plot_kernel.py model_output.txt --disp disp.txt --mode 3 --plot_dispersion
+> ../../python/plot_kernel.py model_output.txt --disp disp.txt --fmin 0.01 --fmax 0.4 --cmin 2.8 --cmax 4.5 --plot_dispersion --vmax 0.35 --mode 0 --out k0.png
+> ../../python/plot_kernel.py model_output.txt --disp disp.txt --fmin 0.01 --fmax 0.4 --cmin 2.8 --cmax 4.5 --plot_dispersion --vmax 0.35 --mode 1 --out k1.png
+> ../../python/plot_kernel.py model_output.txt --disp disp.txt --fmin 0.01 --fmax 0.4 --cmin 2.8 --cmax 4.5 --plot_dispersion --vmax 0.35 --mode 2 --out k2.png
+> ../../python/plot_kernel.py model_output.txt --disp disp.txt --fmin 0.01 --fmax 0.4 --cmin 2.8 --cmax 4.5 --plot_dispersion --vmax 0.35 --mode 3 --out k3.png
 ```
+
+<p align="middle">
+    <img src="doc/k0.png" width="400"/>
+    <img src="doc/k1.png" width="400"/>
+</p>
+<p align="middle">
+    <img src="doc/k2.png" width="400"/>
+    <img src="doc/k3.png" width="400"/>
+</p>
+
+### Compute and display dispersion curves
+
+```bash
+> ../../python/forward.py -c config_forward2.yml --mode 3
+> ../../python/plot_model.py model_data.txt --out model_data.png
+> ../../python/plot_disp.py disp.txt --out disp_data.png
+```
+
+<p align="middle">
+    <img src="doc/model_data.png" width="400"/>
+    <img src="doc/disp_data.png" width="400"/>
+</p>
 
 ### Configure file
 
