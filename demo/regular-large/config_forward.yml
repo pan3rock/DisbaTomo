@@ -1,0 +1,6 @@
+file_model: model_output.txt
+file_output: disp.txt
+fmin: 0.01
+fmax: 0.5
+nf: 100
+
