@@ -29,11 +29,11 @@ weights_mode:
 
 # regularization
 # exp, tr1, tr0, tr2
-reg_method: tr0
+reg_method: exp
 
 # regularization
 smooth:
-  factor: 1.0e-2
+  factor: 3.0e-2
   zmin: 0.0
   zmax: 100.0
   dmin: 10.0
@@ -52,7 +52,7 @@ dir_output: inversion
 
 plot:
     percentage_show: 50
-    zmax: 100
+    zmax: 130
     vs_lim: [2.0, 5.0]
     model_data: model_data.txt
 
@@ -61,4 +61,4 @@ l-curve:
   # 10^a
   amin: -4.0
   amax: 0.0
-  na: 50
+  na: 20

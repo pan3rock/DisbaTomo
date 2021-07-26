@@ -141,6 +141,8 @@ After installing requirements, the program is installed in the following.
 > ../../python/plot_lcurve.py 0
 ```
 
+<img src="doc/lcurve.png" width="400"/>
+
 ### Inversion
 ```bash
 > mpirun -np 4 ../../python/inversion.py --num_init 20
@@ -148,6 +150,12 @@ After installing requirements, the program is installed in the following.
 > ../../python/plot_inversion.py --data 0 --plot_model
 > ../../python/plot_inversion.py --data 0 --plot_disp
 ```
+
+<img src="doc/model_init.png" width="400"/>
+
+<img src="doc/model.png" width="400"/>
+
+<img src="doc/disp.png" width="400"/>
 
 ### Plot sensitivity kernel
 

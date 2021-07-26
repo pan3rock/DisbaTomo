@@ -28,6 +28,10 @@ weights_mode:
   3: 1.0
 
 # regularization
+# exp, tr1, tr0, tr2
+reg_method: exp
+
+# regularization
 smooth:
   factor: 1.0e-2
   zmin: 0.0
@@ -51,3 +55,10 @@ plot:
     zmax: 100
     vs_lim: [2.0, 5.0]
     model_data: model_data.txt
+
+l-curve:
+  dir_out: L-curve
+  # 10^a
+  amin: -4.0
+  amax: 0.0
+  na: 20
