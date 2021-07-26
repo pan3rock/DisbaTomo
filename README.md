@@ -58,7 +58,8 @@ a package manager for supercomputers, Linux, and macOS.
     > spack info gcc
     > spack install ${A_VERSION_OF_GCC}
     > spack location -i gcc
-    > spack compiler find ${LOCATION_OF_GCC_NEW_VERSION}    
+    # spack compiler find ${LOCATION_OF_GCC_NEW_VERSION}    
+    > spack compiler find $(spack location -i gcc)
     ```
     ${A_VERSION_OF_GCC} is a version of gcc which you can choose from the list 
     that "spack info gcc" shows, e.g. `gcc@9.3.0`.
@@ -105,16 +106,14 @@ a package manager for supercomputers, Linux, and macOS.
     Solution: 
     ```bash
     > spack install bzip2
-    > spack location -i bzip2
-    > export PATH=${bzip2 path}:$PATH
+    > export PATH=$(spack location -i bzip2):$PATH
     ```
    2. Error: COmmandNotFoundError: spack requires 'patch'
    
     Solutiin:
     ```bash
     > spack install patch
-    > spack location -i patch
-    > export PATH=${patch path}:$PATH
+    > export PATH=$(spack location -i patch):$PATH
     ```
 
 ### Compilation
