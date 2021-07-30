@@ -37,7 +37,7 @@ if __name__ == '__main__':
     plt.figure(figsize=(10, 10))
     plt.plot(np.log(curve['f_residual'][ind]),
              np.log(curve['f_reg'][ind]), 'k.-')
-    for x, y, a in zip(curve['f_residual'], curve['f_reg'], curve['factor']):
+    for x, y, a in zip(curve['f_residual'][ind], curve['f_reg'][ind], curve['factor'][ind]):
         plt.annotate('{:9.6f}'.format(a), (np.log(x), np.log(y)))
     plt.xlabel('Residual norm $\log\|Ax - b\|_2$')
     plt.ylabel('Regularized norm $\log\| L (x - x_0)\|_2$')
