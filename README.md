@@ -127,6 +127,8 @@ After installing requirements, the program is installed in the following.
 ```bash
 > git clone https://github.com/pan3rock/DisbaTomo.git
 > cd DisbaTomo
+> git submodule init
+> git submodule update
 > cd build
 > cmake ..
 > make -j4
