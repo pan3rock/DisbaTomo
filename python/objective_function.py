@@ -180,7 +180,8 @@ class ObjectiveFunctionDerivativeFree:
     def fitness(self, x):
         forward = self.fetch_forward(x)
         ret = forward.fitness + \
-            self.smooth['factor'] * self._fitness_regularization(x)
+            self.smooth['factor'] / forward.mean_dstd * \
+            self._fitness_regularization(x)
         self.fitness_current = ret
         if self.count_fitness == 0:
             self.fitness_init = ret
@@ -266,7 +267,8 @@ class ObjectiveFunctionDerivativeUsed(ObjectiveFunctionDerivativeFree):
     def gradient(self, x):
         forward = self.fetch_forward(x)
         grad = forward.gradient
-        grad += self.smooth['factor'] * self._gradient_regularization(x)
+        grad += self.smooth['factor'] / forward.mean_dstd * \
+            self._gradient_regularization(x)
         grad *= self.vsmax - self.vsmin
         return grad
 
@@ -291,8 +293,13 @@ class Forward:
         self.fitness = 0.0
         self.gradient = np.zeros(self.nl)
         self.disp = dict()
+        self.mean_dstd = []
         for mode, weight in weights_mode.items():
             disp = self.data[self.data[:, 2].astype(int) == mode]
+            if self.data.shape[1] == 4:
+                dstd = disp[:, 3]
+            else:
+                dstd = np.ones(disp.shape[0])
             periods = 1.0 / disp[:, 0]
             cp = self.pd(periods, mode=mode, wave=self.wave_type)
             self.disp[mode] = np.vstack(
@@ -303,14 +310,16 @@ class Forward:
             for p, c in zip(cp.period, cp.velocity):
                 ind = np.argmin(np.abs(periods - p))
                 c_obs = disp[ind, 1]
-                f_1mode += (c - c_obs) ** 2
+                f_1mode += (c - c_obs) ** 2 / dstd[ind] ** 2
                 grad_1mode += 2.0 * (c - c_obs) * \
-                    self.gradEval.compute(1.0 / p, c)
+                    self.gradEval.compute(1.0 / p, c) / dstd[ind] ** 2
+                self.mean_dstd.append(dstd[ind])
             if count_1mode > 0:
                 f_1mode *= weight / count_1mode
                 grad_1mode *= weight / count_1mode
             self.fitness += f_1mode
             self.gradient += grad_1mode
 
+        self.mean_dstd = np.mean(self.mean_dstd) ** 2
         self.fitness /= len(weights_mode)
         self.gradient /= len(weights_mode)

@@ -143,6 +143,7 @@ if __name__ == '__main__':
     size = comm.Get_size()
 
     if rank == 0:
+
         with open(file_config, 'r') as fp:
             config = yaml.safe_load(fp)
         dir_output = config['dir_output']
