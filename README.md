@@ -129,6 +129,7 @@ After installing requirements, the program is installed in the following.
 > cd DisbaTomo
 > git submodule init
 > git submodule update
+> mkdir build
 > cd build
 > cmake ..
 > make -j4
