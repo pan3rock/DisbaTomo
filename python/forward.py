@@ -2,6 +2,7 @@
 import numpy as np
 import argparse
 from disba import PhaseDispersion
+import time
 
 import yaml
 
@@ -22,11 +23,13 @@ if __name__ == '__main__':
     file_data = args.data
     love = args.love
 
+    t1 = time.time()
     with open(file_config, 'r') as fp:
         config = yaml.safe_load(fp)
 
     file_model = config['file_model']
     file_out = config.get('file_out', 'disp.txt')
+    algo = config.get('algorithm', 'dunkin')
 
     model = np.loadtxt(file_model)
     z = model[:, 1]
@@ -35,7 +38,7 @@ if __name__ == '__main__':
     rho = model[:, 2]
     vs = model[:, 3]
     vp = model[:, 4]
-    pd = PhaseDispersion(tn, vp, vs, rho)
+    pd = PhaseDispersion(tn, vp, vs, rho, algorithm=algo)
 
     if love:
         wave_type = 'love'
@@ -68,3 +71,6 @@ if __name__ == '__main__':
         for mode, (fs, cs) in disp.items():
             for f, c in zip(fs, cs):
                 fp.write('{:15.8f}{:15.8f}{:10d}\n'.format(f, c, mode))
+
+    t2 = time.time()
+    print('elapsed time: {:9.3f}'.format(t2 - t1))
