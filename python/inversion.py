@@ -112,8 +112,16 @@ class InversionOne(Slave):
         ind_mi, config, file_data, x0, options = data
         nx = len(x0)
 
+        model_init = np.loadtxt(config['model_init'])
+        half_width = config["init_half_width"]
+        vs0 = model_init[:, 3]
+        vsmin = vs0 - half_width
+        vsmax = vs0 + half_width
+
         def func(x, i):
-            return x[i + 1] - x[i]
+            vs = vsmin + (vsmax - vsmin) * x
+            return vs[i + 1] - vs[i]
+
         const = [{'type': 'ineq', 'fun': func, 'args': (i, )}
                  for i in range(nx - 1)]
 
