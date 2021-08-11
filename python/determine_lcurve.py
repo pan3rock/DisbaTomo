@@ -94,9 +94,18 @@ class InversionOne(Slave):
         prob = ObjectiveFunctionDerivativeUsed(config, file_data)
         prob.smooth['factor'] = factor
         x0 = np.ones(nl) * 0.5
+
+        def func(x, i):
+            return x[i + 1] - x[i]
+        const = [{'type': 'ineq', 'fun': func, 'args': (i, )}
+                 for i in range(nl - 1)]
         res = minimize(prob.fitness, x0,
-                       jac=prob.gradient, method='L-BFGS-B', bounds=prob.bounds,
+                       jac=prob.gradient,
+                       constraints=const,
+                       method='SLSQP',
+                       bounds=prob.bounds,
                        options=options)
+
         forward = prob.fetch_forward(res.x)
         f_residual = forward.fitness
         f_reg = prob._fitness_regularization(res.x)

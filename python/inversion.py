@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pathlib
 import time
-from scipy.optimize import minimize
+from scipy.optimize import minimize, LinearConstraint, SR1
 import argparse
 import shutil
 
@@ -110,11 +110,23 @@ class InversionOne(Slave):
 
     def do_work(self, data):
         ind_mi, config, file_data, x0, options = data
+        nx = len(x0)
+
+        def func(x, i):
+            return x[i + 1] - x[i]
+        const = [{'type': 'ineq', 'fun': func, 'args': (i, )}
+                 for i in range(nx - 1)]
+
         t1 = time.time()
         prob = ObjectiveFunctionDerivativeUsed(config, file_data)
+
         res = minimize(prob.fitness, x0,
-                       jac=prob.gradient, method='L-BFGS-B', bounds=prob.bounds,
+                       jac=prob.gradient,
+                       constraints=const,
+                       method='SLSQP',
+                       bounds=prob.bounds,
                        options=options)
+
         t2 = time.time()
         dt_seconds = int(t2 - t1)
         f0 = prob.fitness(x0)
