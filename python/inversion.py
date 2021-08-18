@@ -119,9 +119,9 @@ class InversionOne(Slave):
             res = minimize(prob.fitness, x0,
                            jac=prob.gradient, method='L-BFGS-B', bounds=prob.bounds,
                            options=options)
-        except ZeroDivisionError:
-            msg = "ZeroDivisionError: (ind_mi, {:d}), (ind_data, {:s})"
-            print(msg.format(ind_mi, ind_data))
+        except BaseException as error:
+            msg = "{}: (ind_mi, {:d}), (ind_data, {:s})"
+            print(msg.format(error, ind_mi, ind_data))
             return ind_mi, ind_data, None
         t2 = time.time()
         dt_seconds = int(t2 - t1)
