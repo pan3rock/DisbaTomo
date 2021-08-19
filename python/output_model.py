@@ -80,7 +80,7 @@ if __name__ == '__main__':
         model[:, 3] = vs
         model[:, 4] = vp
 
-        path_out = os.path.join(dir_out, '{:s}.txt'.format(dnm))
+        path_out = os.path.join(dir_out, '{}.txt'.format(dnm))
         std = np.asarray(std).reshape(-1, 1)
         model = np.hstack((model, std))
         fmt = "%5d%15.6f%15.6f%15.6f%15.6f%20.5e"
