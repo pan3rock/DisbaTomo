@@ -201,6 +201,7 @@ The sensitivity is defined in [[1]](#1).
 
 ```bash
 > ../../python/output_model.py
+```
 
 The script will output estimated models to the directory `model_inv`, which name
 is corresponding to the filename of data.
