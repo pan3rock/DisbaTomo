@@ -36,7 +36,7 @@ system, e.g. apt-get, homebrew, pacman.
         ```bash
         > conda create -n disba python=3.8
         > conda activate disba
-        > conda install numpy scipy matplotlib pyyaml mpi4py pandas
+        > conda install numpy scipy matplotlib pyyaml mpi4py pandas tqdm
         > pip install disba mpi_master_slave
         ```
 

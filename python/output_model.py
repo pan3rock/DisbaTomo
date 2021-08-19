@@ -5,6 +5,7 @@ import pandas as pd
 import yaml
 import os
 import shutil
+import tqdm
 
 
 def weighted_avg_and_std(values, weights):
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     record = pd.read_fwf(file_logging)
     data = set(record['No.data'])
 
-    for dnm in data:
+    for dnm in tqdm.tqdm(data, total=len(data)):
         rec = record[record['No.data'] == dnm]
         num = rec.shape[0]
         num_best = int(num * ratio_best)
@@ -60,7 +61,7 @@ if __name__ == '__main__':
         vs = []
         vp = []
         for i in index:
-            path = os.path.join(dir_inv, dnm, '{:d}.npz'.format(i))
+            path = os.path.join(dir_inv, str(dnm), '{:d}.npz'.format(i))
             mi = np.load(path)['mi']
             z = mi[:, 1]
             rho.append(mi[:, 2])
