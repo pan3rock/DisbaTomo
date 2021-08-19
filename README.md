@@ -197,6 +197,16 @@ The sensitivity is defined in [[1]](#1).
     <img src="doc/disp_data.png" width="400"/>
 </p>
 
+### Output models when number of data is large
+
+```bash
+> ../../python/output_model.py
+
+The script will output estimated models to the directory `model_inv`, which name
+is corresponding to the filename of data.
+The estimated models are based on inverted models from different initial mdoesls 
+and their corresponding fitness value.
+
 ### Configure file
 
 TODO: translate into English
