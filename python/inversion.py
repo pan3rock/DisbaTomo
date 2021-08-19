@@ -73,14 +73,16 @@ class InversionMultiple(object):
 
                 for slave_return_data in self.work_queue.get_completed_work():
                     ind_mi, ind_data, res = slave_return_data
-                    with open(self.file_logging, 'a') as flog:
-                        flog.write(fmt_line.format(ind_data, ind_mi, res['niter'], res['nfev'],
-                                                   res['success'], res['f0'],
-                                                   res['fi'], res['time']))
-                    dir_output = 'inversion/' + ind_data
-                    pathlib.Path(dir_output).mkdir(parents=True, exist_ok=True)
-                    np.savez(dir_output + '/' +
-                             '{:d}.npz'.format(ind_mi), **res)
+                    if res:
+                        with open(self.file_logging, 'a') as flog:
+                            flog.write(fmt_line.format(ind_data, ind_mi, res['niter'], res['nfev'],
+                                                       res['success'], res['f0'],
+                                                       res['fi'], res['time']))
+                        dir_output = 'inversion/' + ind_data
+                        pathlib.Path(dir_output).mkdir(
+                            parents=True, exist_ok=True)
+                        np.savez(dir_output + '/' +
+                                 '{:d}.npz'.format(ind_mi), **res)
                 time.sleep(0.03)
 
     def create_init(self):
@@ -110,11 +112,17 @@ class InversionOne(Slave):
 
     def do_work(self, data):
         ind_mi, config, file_data, x0, options = data
+        ind_data = file_data.split('.')[0]
         t1 = time.time()
         prob = ObjectiveFunctionDerivativeUsed(config, file_data)
-        res = minimize(prob.fitness, x0,
-                       jac=prob.gradient, method='L-BFGS-B', bounds=prob.bounds,
-                       options=options)
+        try:
+            res = minimize(prob.fitness, x0,
+                           jac=prob.gradient, method='L-BFGS-B', bounds=prob.bounds,
+                           options=options)
+        except BaseException as error:
+            msg = "{}: (ind_mi, {:d}), (ind_data, {:s})"
+            print(msg.format(error, ind_mi, ind_data))
+            return ind_mi, ind_data, None
         t2 = time.time()
         dt_seconds = int(t2 - t1)
         f0 = prob.fitness(x0)
@@ -125,7 +133,6 @@ class InversionOne(Slave):
         results = dict(niter=res.nit, nfev=res.nfev, success=res.success,
                        fi=res.fun, f0=f0, m0=m0, mi=mi, time=dt_seconds,
                        ri=ri, r0=r0)
-        ind_data = file_data.split('.')[0]
         return ind_mi, ind_data, results
 
 
