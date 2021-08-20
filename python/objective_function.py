@@ -94,7 +94,7 @@ class ObjectiveFunctionDerivativeFree:
         elif self.empirical_relation == 'user-defined':
             model = user_defined(self.z, vs)
         else:
-            model = self.model_init
+            model = self.model_init.copy()
             model[:, 3] = vs
         return model
 
