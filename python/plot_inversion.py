@@ -88,6 +88,7 @@ def plot_disp(config, sid, all_disp, file_out):
         weights_mode = config.get("weights_mode", None)
         for ind, (w, model) in enumerate(zip(weight, models_inv)):
             forward = Forward(model, data, wave_type)
+            forward.compute(weights_mode)
             disp = forward.disp
             for m, val in disp.items():
                 modes.append(m)
