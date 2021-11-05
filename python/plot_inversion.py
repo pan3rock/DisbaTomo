@@ -46,7 +46,7 @@ def weighted_avg_and_std(values, weights):
     return (average, np.sqrt(variance))
 
 
-def plot_disp(config, sid, all_disp, file_out):
+def plot_disp(config, sid, all_disp, file_out, no_show):
     config_plot = config['plot']
     dir_output = config['dir_output']
     wave_type = config.get('wave_type', 'rayleigh')
@@ -117,10 +117,11 @@ def plot_disp(config, sid, all_disp, file_out):
     plt.tight_layout()
     if file_out:
         plt.savefig(file_out, dpi=300)
-    plt.show()
+    if not no_show:
+        plt.show()
 
 
-def plot_model(config_inv, sid, plot_init, file_out):
+def plot_model(config_inv, sid, plot_init, file_out, no_show):
     config_plot = config_inv['plot']
     zmax = config_plot['zmax']
     vsmin, vsmax = config_plot['vs_lim']
@@ -275,7 +276,8 @@ def plot_model(config_inv, sid, plot_init, file_out):
     plt.tight_layout()
     if file_out:
         plt.savefig(file_out, dpi=300)
-    plt.show()
+    if not no_show:
+        plt.show()
 
 
 if __name__ == '__main__':
@@ -288,6 +290,7 @@ if __name__ == '__main__':
     parser.add_argument('--plot_init', action='store_true')
     parser.add_argument('--out', default=None,
                         help='filename of output figure')
+    parser.add_argument('--no_show', action='store_true')
     args = parser.parse_args()
     file_config = args.config
     dataname = args.data
@@ -296,11 +299,12 @@ if __name__ == '__main__':
     all_disp = args.all_disp
     show_init = args.plot_init
     file_out = args.out
+    no_show = args.no_show
 
     with open(file_config, 'r') as fp:
         config = yaml.safe_load(fp)
 
     if show_model:
-        plot_model(config, dataname, show_init, file_out)
+        plot_model(config, dataname, show_init, file_out, no_show)
     if show_disp:
-        plot_disp(config, dataname, all_disp, file_out)
+        plot_disp(config, dataname, all_disp, file_out, no_show)
