@@ -789,7 +789,7 @@ ArrayXd GradientPSV::compute(const double freq, const double c) const {
   double I2 = intl.compute_I2();
   double I3 = intl.compute_I3();
   ArrayXd kvs = intl.compute_kvs();
-  kvs *= c / (I2 + I3 / k);
+  kvs *= c / (I2 + I3 / (2.0*k));
   return kvs;
 }
 
