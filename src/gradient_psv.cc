@@ -766,7 +766,7 @@ double IntegralLayer::compute_I2() {
 
 double IntegralLayer::compute_I3() {
   ArrayXd ker = lamb_ * int_usdur_ - mu_ * int_urdus_;
-  double i3 = 0.5 * ker.sum();
+  double i3 = ker.sum();
   return i3;
 }
 
