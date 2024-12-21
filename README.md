@@ -100,6 +100,17 @@ is a package manager for supercomputers, Linux, and macOS.
 
     You can add these module load command to your .bashrc.
 
+**New version of spack has simplified the procedure of 4 and 5**
+
+You can run `spack find` directly without installing lmod and then installed softwares will be seen.
+<p align="middle">
+    <img src="doc/spackfind.png" width="400"/>
+</p>
+
+After that, run `spack load xxx@a.b.c` that `xxx` is the name of software or library you want to load and `a.b.c` is the version of it.
+
+You can add these load commands to your `.bashrc`.
+
 
 6. Install python package (the same procedure as above)
 
