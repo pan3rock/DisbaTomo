@@ -1,3 +1,15 @@
+⚠️ Maintenance Notice & Recommendation
+
+This repository (**DisbaTomo**) is no longer actively maintained. For surface wave dispersion curve computation and inversion, I highly recommend using my latest toolkit: [QEDispInv](https://github.com/pan3rock/QEDispInv).
+
+Why switch to **QEDispInv**?
+
+- Better Performance: Optimized with quadratic extrema interpolation, resolving "mode-kissing" issues in complex models.
+- Enhanced Workflow: Includes wavelength-constrained layering and more robust statistical aggregation.
+- Updated Research: It accompanies my latest published framework ([Pan et al., 2026](https://doi.org/10.1785/0120250207)).
+
+Please visit [QEDispInv](https://github.com/pan3rock/QEDispInv) for the most up-to-date features and support.
+
 # DisbaTomo
 Inversion of multimode dispersion curves of surface wave
 
